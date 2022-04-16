@@ -4,4 +4,5 @@ export interface VaccinationAppointment {
   slot: VaccinationSlot;
   icNumber: string;
   fullName: string;
+  appointmentId: number;
 }

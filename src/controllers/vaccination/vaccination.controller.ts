@@ -1,8 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { isDate, parseISO } from 'date-fns';
-import { ErrorResult, Result } from 'src/models/result';
 import { VaccinationAppointment } from 'src/models/vaccination-appointment';
 import { VaccinationAppointmentService } from 'src/services/vaccination-appointment.service';
+import { RescheduleRequest } from './reschedule-request';
 import { ReservationRequest } from './reservation-request';
 
 @Controller('vaccination')
@@ -12,7 +20,7 @@ export class VaccinationController {
   @Post()
   async makeAppointment(
     @Body() request: ReservationRequest,
-  ): Promise<Result<VaccinationAppointment>> {
+  ): Promise<VaccinationAppointment> {
     const { icNumber, centerId, time, fullName } = request;
     const appointmentTime = !!time ? parseISO(time) : undefined;
 
@@ -23,14 +31,71 @@ export class VaccinationController {
       !appointmentTime ||
       !isDate(appointmentTime)
     ) {
-      return new ErrorResult('invalid-model');
+      throw new BadRequestException('invalid-model');
     }
 
-    return await this.service.makeAppointment(
+    const result = await this.service.makeAppointment(
       centerId,
       appointmentTime,
       icNumber,
       fullName,
     );
+
+    if (result && result.isSuccess) {
+      return result.value;
+    } else {
+      throw new BadRequestException(result?.errorCode);
+    }
+  }
+
+  @Put()
+  async rescheduleAppointment(
+    @Body() request: RescheduleRequest,
+  ): Promise<VaccinationAppointment> {
+    const { icNumber, centerId, time, fullName, appointmentId } = request;
+    const appointmentTime = !!time ? parseISO(time) : undefined;
+    const parsedAppointmentId = parseInt(appointmentId || '', 10);
+
+    if (
+      !icNumber ||
+      !centerId ||
+      !fullName ||
+      !parsedAppointmentId ||
+      isNaN(parsedAppointmentId) ||
+      !appointmentTime ||
+      !isDate(appointmentTime)
+    ) {
+      throw new BadRequestException('invalid-model');
+    }
+
+    const result = await this.service.updateAppointment(
+      parsedAppointmentId,
+      centerId,
+      appointmentTime,
+      icNumber,
+      fullName,
+    );
+
+    if (result && result.isSuccess) {
+      return result.value;
+    } else {
+      throw new BadRequestException(result?.errorCode);
+    }
+  }
+
+  @Delete(':id')
+  async deleteAppointment(@Param() params): Promise<void> {
+    const { id } = params;
+    const appointmentId = parseInt(id || '', 10);
+
+    if (!appointmentId || isNaN(appointmentId)) {
+      throw new BadRequestException('invalid-model');
+    }
+
+    const result = await this.service.cancelAppointment(appointmentId);
+
+    if (!result || !result.isSuccess) {
+      throw new BadRequestException(result?.errorCode);
+    }
   }
 }

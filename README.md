@@ -3,9 +3,10 @@
 ## Assumptions Made
 
 1. The purpose of this API is to book Covid-19 vaccination appointments; hence the CRUD of Vaccination Centers, Vaccination Slots, IC Verification, and others are not included in the scope of this API.
-2. The data of Vaccination Centers, Vaccination Slots, IC Verification, and others are managed by another application or another party.
+2. The data of Vaccination Centers, Vaccination Slots, IC Verification, and others are managed by another application or another party, this API will read the above data only.
 3. User can make appointments for any vaccination centers.
-4. User are making appointment for their first vaccination jab, subsequent vaccination jabs are not included in this API.
+4. User are making appointment for their first vaccination jab only, subsequent vaccination jabs are not handled in this API.
+5. Authentication and authorization is ignored as it is not specified in the requirements.
 
 ## Table Design
 

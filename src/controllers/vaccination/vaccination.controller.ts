@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -10,13 +12,25 @@ import {
 import { isDate, parseISO } from 'date-fns';
 import { VaccinationAppointment } from 'src/models/vaccination-appointment';
 import { VaccinationAppointmentService } from 'src/services/vaccination-appointment.service';
+import { VaccinationAppointmentStore } from 'src/stores/vaccination-appointment.store';
 import { RescheduleRequest } from './reschedule-request';
 import { ReservationRequest } from './reservation-request';
 
-@Controller('vaccination')
+/**
+ * Vaccination controller.
+ */
+@Controller('vaccinations')
 export class VaccinationController {
-  constructor(private service: VaccinationAppointmentService) {}
+  constructor(
+    private service: VaccinationAppointmentService,
+    private store: VaccinationAppointmentStore,
+  ) {}
 
+  /**
+   * Make vaccination appointment.
+   * @param request Request.
+   * @returns Created vaccination appointment.
+   */
   @Post()
   async makeAppointment(
     @Body() request: ReservationRequest,
@@ -48,6 +62,11 @@ export class VaccinationController {
     }
   }
 
+  /**
+   * Reschedule vaccination appointment.
+   * @param request Request.
+   * @returns Updated vaccination appointment.
+   */
   @Put()
   async rescheduleAppointment(
     @Body() request: RescheduleRequest,
@@ -83,6 +102,10 @@ export class VaccinationController {
     }
   }
 
+  /**
+   * Cancels existing appointment.
+   * @param params Appointment id.
+   */
   @Delete(':id')
   async deleteAppointment(@Param() params): Promise<void> {
     const { id } = params;
@@ -96,6 +119,39 @@ export class VaccinationController {
 
     if (!result || !result.isSuccess) {
       throw new BadRequestException(result?.errorCode);
+    }
+  }
+
+  /**
+   * Get all vaccination appointments.
+   * @returns All vaccination appointments.
+   */
+  @Get()
+  async getAllVaccinationAppointments() {
+    return await this.store.getVaccinataionAppointments();
+  }
+
+  /**
+   * Get vaccination appointment.
+   * @param params Appointment id.
+   * @returns Vaccination appointment.
+   */
+  @Get(':id')
+  async getAllVaccinationAppointmentById(@Param() params) {
+    const { id } = params;
+    const appointmentId = parseInt(id || '', 10);
+
+    if (!appointmentId || isNaN(appointmentId)) {
+      throw new BadRequestException('invalid-model');
+    }
+
+    const appointment =
+      await this.store.getVaccinationAppointmentByAppointmentId(appointmentId);
+
+    if (appointment) {
+      return appointment;
+    } else {
+      throw new NotFoundException();
     }
   }
 }

@@ -4,11 +4,10 @@ import { VaccinationSlotCacheService } from './services/vaccination-slot-cache.s
 import { VaccinationAppointmentStore } from './stores/vaccination-appointment.store';
 import { VaccinationController } from './controllers/vaccination/vaccination.controller';
 import { VaccinationAppointmentService } from './services/vaccination-appointment.service';
-import { AppointmentsController } from './controllers/appointments/appointments.controller';
 
 @Module({
   imports: [],
-  controllers: [VaccinationController, AppointmentsController],
+  controllers: [VaccinationController],
   providers: [
     AppService,
     VaccinationSlotCacheService,

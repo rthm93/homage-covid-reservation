@@ -22,8 +22,8 @@
 | SlotId         | BIGINT       | ID of the slot                                       |
 | CenterId       | VARHCAR(100) | Unique ID of vaccination center.                     |
 | SlotsAvailable | INT          | Number of appointments available for this time slot. |
-| SlotStartTime  | DATETIME     | Start time of the slot.                              |
-| SlotEndTime    | DATETIME     | End time of the slot.                                |
+| Start  | DATETIME     | Start time of the slot.                              |
+| End    | DATETIME     | End time of the slot.                                |
 
 ### Vaccination Reservation
 

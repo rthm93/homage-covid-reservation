@@ -128,7 +128,7 @@ export class VaccinationController {
    */
   @Get()
   async getAllVaccinationAppointments() {
-    return await this.store.getVaccinataionAppointments();
+    return await this.store.getAllVaccinataionAppointments();
   }
 
   /**

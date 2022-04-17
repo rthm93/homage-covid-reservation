@@ -9,8 +9,14 @@ import { Options } from 'sequelize';
 import { VaccinationCenterModel } from './models/vaccination-center';
 import { VaccinationCentersController } from './controllers/vaccination-centers/vaccination-centers.controller';
 import * as config from './dbconfig.json';
+import { VaccinationSlotModel } from './models/vaccination-slot';
+import { VaccinationAppointmentModel } from './models/vaccination-appointment';
 
-const SEQUELIZE_MODELS = [VaccinationCenterModel];
+const SEQUELIZE_MODELS = [
+  VaccinationCenterModel,
+  VaccinationSlotModel,
+  VaccinationAppointmentModel,
+];
 
 @Module({
   imports: [

@@ -1,12 +1,18 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize';
-import { VaccinationAppointment } from 'src/models/vaccination-appointment';
+import {
+  VaccinationAppointment,
+  VaccinationAppointmentModel,
+} from 'src/models/vaccination-appointment';
 import {
   VaccinationCenter,
   VaccinationCenterModel,
 } from 'src/models/vaccination-center';
-import { VaccinationSlot } from 'src/models/vaccination-slot';
+import {
+  VaccinationSlot,
+  VaccinationSlotModel,
+} from 'src/models/vaccination-slot';
 
 /**
  * Vaccination appointments data access layer.
@@ -16,8 +22,16 @@ export class VaccinationAppointmentStore {
   constructor(
     @InjectModel(VaccinationCenterModel)
     private vaccinationCenters: typeof VaccinationCenterModel,
+    @InjectModel(VaccinationSlotModel)
+    private vaccinationSlots: typeof VaccinationSlotModel,
+    @InjectModel(VaccinationAppointmentModel)
+    private vaccinationAppointments: typeof VaccinationAppointmentModel,
   ) {}
 
+  /**
+   * Get all vaccination centers.
+   * @returns All vaccination centers.
+   */
   async getAllVaccinationCenters(): Promise<VaccinationCenter[]> {
     return await this.vaccinationCenters.findAll();
   }
@@ -45,8 +59,13 @@ export class VaccinationAppointmentStore {
    * Get all vaccination appointments.
    * @returns All Vaccination Appointments.
    */
-  async getVaccinataionAppointments(): Promise<VaccinationAppointment[]> {
-    return Promise.resolve([]); // TODO: connect to mysql to get appointment.
+  async getAllVaccinataionAppointments(): Promise<VaccinationAppointment[]> {
+    return await this.vaccinationAppointments.findAll({
+      include: {
+        model: VaccinationSlotModel,
+        include: [VaccinationCenterModel],
+      },
+    });
   }
 
   /**

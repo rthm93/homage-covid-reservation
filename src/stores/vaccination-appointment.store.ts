@@ -1,6 +1,8 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op, Sequelize } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
+import { format } from 'date-fns';
+import { Sequelize } from 'sequelize-typescript';
 import {
   VaccinationAppointment,
   VaccinationAppointmentModel,
@@ -58,7 +60,7 @@ export class VaccinationAppointmentStore {
             [Op.lte]: time,
           },
           end: {
-            [Op.gte]: time,
+            [Op.gt]: time,
           },
         },
       },
@@ -105,7 +107,7 @@ export class VaccinationAppointmentStore {
    * @returns Vaccination Appointment or null if no appointment.
    */
   async getVaccinationAppointmentByAppointmentId(
-    appointmentId: number,
+    appointmentId: string,
   ): Promise<VaccinationAppointment> {
     return await this.vaccinationAppointments.findOne({
       include: {
@@ -130,24 +132,13 @@ export class VaccinationAppointmentStore {
     slotId: string,
     fullName: string,
   ): Promise<VaccinationAppointment> {
-    try {
-      const record = await this.sequelize.transaction(async (t) => {
-        const transactionHost = { transaction: t };
-        const now = new Date();
-
-        const appointment = await this.vaccinationAppointments.create(
-          { firstName: 'Abraham', lastName: 'Lincoln' },
-          transactionHost,
-        );
-
-        return appointment;
+    const record = await this.sequelize.transaction(async (transaction) => {
+      return await this.createNewAppointment(icNumber, slotId, fullName, {
+        transaction,
       });
+    });
 
-      return record;
-    } catch (error) {
-      console.error(error); // TODO: logging
-      return undefined;
-    }
+    return record;
   }
 
   /**
@@ -158,27 +149,23 @@ export class VaccinationAppointmentStore {
    * @param fullName Full name.
    * @returns Updated Vaccination Appointment.
    */
-  updateVaccinationAppointment(
-    appointmentId: number,
+  async updateVaccinationAppointment(
+    appointmentId: string,
     icNumber: string,
     slotId: string,
     fullName: string,
   ): Promise<VaccinationAppointment> {
-    return Promise.resolve({
-      slot: {
-        slotId: slotId,
-        start: new Date(2022, 4, 16),
-        end: new Date(2022, 4, 17),
-        slotsAvailable: 10,
-        vaccinationCenter: {
-          centerId: 'BUKIT-TIMAH-CC',
-          location: 'Bukit Timah CC',
-        },
-      },
-      icNumber,
-      fullName,
-      appointmentId: 2315497,
-    }); // TODO: connect to mysql to get appointment.
+    return await this.sequelize.transaction(async (transaction) => {
+      const transactionHost = { transaction };
+      const record = await this.createNewAppointment(
+        icNumber,
+        slotId,
+        fullName,
+        transactionHost,
+      );
+      await this.deleteAppointment(appointmentId, transactionHost);
+      return record;
+    });
   }
 
   /**
@@ -186,7 +173,72 @@ export class VaccinationAppointmentStore {
    * @param appointmentId Existing appointment id.
    * @returns Nothing
    */
-  deleteVaccinationAppointment(appointmentId: number): Promise<void> {
-    return Promise.resolve();
+  async deleteVaccinationAppointment(appointmentId: string): Promise<void> {
+    await this.sequelize.transaction(async (transaction) =>
+      this.deleteAppointment(appointmentId, { transaction }),
+    );
+  }
+
+  /**
+   * Actual logic to create new appointment.
+   * @param icNumber IC Number.
+   * @param slotId Vaccination slot id.
+   * @param fullName Full name.
+   * @param transactionHost Transaction host.
+   * @returns Created Vaccination Appointment.
+   */
+  private async createNewAppointment(
+    icNumber: string,
+    slotId: string,
+    fullName: string,
+    transactionHost: { transaction: Transaction },
+  ): Promise<VaccinationAppointment> {
+    const slot = await this.vaccinationSlots.findOne({ where: { slotId } });
+    const numberOfAppointments = await this.vaccinationAppointments.count({
+      where: {
+        slotId,
+      },
+    });
+
+    if (!slot || numberOfAppointments >= slot.slotsAvailable) {
+      throw new Error();
+    }
+
+    const appointmentId = this.getAppointmentId(slot.slotId);
+    const appointment = await this.vaccinationAppointments.create(
+      { slotid: slotId, icNumber, fullName, appointmentId },
+      transactionHost,
+    );
+
+    return appointment;
+  }
+
+  /**
+   * Actual logic to delete vaccination appointment.
+   * @param appointmentId Existing appointment id.
+   * @param transactionHost Transaction host.
+   * @returns Nothing
+   */
+  private async deleteAppointment(
+    appointmentId: string,
+    transactionHost: { transaction: Transaction },
+  ): Promise<void> {
+    await this.vaccinationAppointments.destroy({
+      ...transactionHost,
+      where: {
+        appointmentId,
+      },
+    });
+  }
+
+  /**
+   * Generate appointment id.
+   * @param slotId Slot id.
+   * @returns Generate appointment id.
+   */
+  private getAppointmentId(slotId: string) {
+    const now = new Date();
+    const dateFormat = format(now, 'yyyyMMddHHmmssSSS');
+    return `${slotId}-${dateFormat}`;
   }
 }

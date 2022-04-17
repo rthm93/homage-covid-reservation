@@ -5,7 +5,7 @@ export interface VaccinationAppointment {
   slot: VaccinationSlot;
   icNumber: string;
   fullName: string;
-  appointmentId: number;
+  appointmentId: string;
 }
 
 @Table({
@@ -32,5 +32,5 @@ export class VaccinationAppointmentModel
     field: 'appointmentid',
     primaryKey: true,
   })
-  appointmentId: number;
+  appointmentId: string;
 }

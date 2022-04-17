@@ -73,14 +73,12 @@ export class VaccinationController {
   ): Promise<VaccinationAppointment> {
     const { icNumber, centerId, time, fullName, appointmentId } = request;
     const appointmentTime = !!time ? parseISO(time) : undefined;
-    const parsedAppointmentId = parseInt(appointmentId || '', 10);
 
     if (
       !icNumber ||
       !centerId ||
       !fullName ||
-      !parsedAppointmentId ||
-      isNaN(parsedAppointmentId) ||
+      !appointmentId ||
       !appointmentTime ||
       !isDate(appointmentTime)
     ) {
@@ -88,7 +86,7 @@ export class VaccinationController {
     }
 
     const result = await this.service.updateAppointment(
-      parsedAppointmentId,
+      appointmentId,
       centerId,
       appointmentTime,
       icNumber,
@@ -109,13 +107,12 @@ export class VaccinationController {
   @Delete(':id')
   async deleteAppointment(@Param() params): Promise<void> {
     const { id } = params;
-    const appointmentId = parseInt(id || '', 10);
 
-    if (!appointmentId || isNaN(appointmentId)) {
+    if (!id) {
       throw new BadRequestException('invalid-model');
     }
 
-    const result = await this.service.cancelAppointment(appointmentId);
+    const result = await this.service.cancelAppointment(id);
 
     if (!result || !result.isSuccess) {
       throw new BadRequestException(result?.errorCode);
@@ -139,14 +136,13 @@ export class VaccinationController {
   @Get(':id')
   async getAllVaccinationAppointmentById(@Param() params) {
     const { id } = params;
-    const appointmentId = parseInt(id || '', 10);
 
-    if (!appointmentId || isNaN(appointmentId)) {
+    if (!id) {
       throw new BadRequestException('invalid-model');
     }
 
     const appointment =
-      await this.store.getVaccinationAppointmentByAppointmentId(appointmentId);
+      await this.store.getVaccinationAppointmentByAppointmentId(id);
 
     if (appointment) {
       return appointment;

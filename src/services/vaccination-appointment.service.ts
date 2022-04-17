@@ -64,7 +64,7 @@ export class VaccinationAppointmentService {
   }
 
   async updateAppointment(
-    appointmentId: number,
+    appointmentId: string,
     centerId: string,
     newTime: Date,
     icNumber: string,
@@ -112,7 +112,7 @@ export class VaccinationAppointmentService {
     }
   }
 
-  async cancelAppointment(appointmentId: number): Promise<Result<void>> {
+  async cancelAppointment(appointmentId: string): Promise<Result<void>> {
     const existingAppointment =
       await this.store.getVaccinationAppointmentByAppointmentId(appointmentId);
 

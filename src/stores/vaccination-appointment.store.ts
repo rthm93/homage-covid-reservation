@@ -1,5 +1,11 @@
 import { Injectable, Scope } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
+import { Sequelize } from 'sequelize';
 import { VaccinationAppointment } from 'src/models/vaccination-appointment';
+import {
+  VaccinationCenter,
+  VaccinationCenterModel,
+} from 'src/models/vaccination-center';
 import { VaccinationSlot } from 'src/models/vaccination-slot';
 
 /**
@@ -7,6 +13,15 @@ import { VaccinationSlot } from 'src/models/vaccination-slot';
  */
 @Injectable({ scope: Scope.REQUEST })
 export class VaccinationAppointmentStore {
+  constructor(
+    @InjectModel(VaccinationCenterModel)
+    private vaccinationCenters: typeof VaccinationCenterModel,
+  ) {}
+
+  async getAllVaccinationCenters(): Promise<VaccinationCenter[]> {
+    return await this.vaccinationCenters.findAll();
+  }
+
   /**
    * Get vaccination slot.
    * @param centerId Vaccination center id.
@@ -30,7 +45,7 @@ export class VaccinationAppointmentStore {
    * Get all vaccination appointments.
    * @returns All Vaccination Appointments.
    */
-  getVaccinataionAppointments(): Promise<VaccinationAppointment[]> {
+  async getVaccinataionAppointments(): Promise<VaccinationAppointment[]> {
     return Promise.resolve([]); // TODO: connect to mysql to get appointment.
   }
 

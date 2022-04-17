@@ -4,17 +4,21 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
   Put,
 } from '@nestjs/common';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { isDate, parseISO } from 'date-fns';
 import { VaccinationAppointment } from 'src/models/vaccination-appointment';
 import { VaccinationAppointmentService } from 'src/services/vaccination-appointment.service';
 import { VaccinationAppointmentStore } from 'src/stores/vaccination-appointment.store';
 import { RescheduleRequest } from './reschedule-request';
 import { ReservationRequest } from './reservation-request';
+import { VaccinationAppointmentResponse } from './vaccination-appointment-response';
 
 /**
  * Vaccination controller.
@@ -32,6 +36,11 @@ export class VaccinationController {
    * @returns Created vaccination appointment.
    */
   @Post()
+  @ApiOperation({ description: 'Create new vaccination appointment.' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    type: VaccinationAppointmentResponse,
+  })
   async makeAppointment(
     @Body() request: ReservationRequest,
   ): Promise<VaccinationAppointment> {
@@ -68,6 +77,11 @@ export class VaccinationController {
    * @returns Updated vaccination appointment.
    */
   @Put()
+  @ApiOperation({ description: 'Reschedule the vaccination appointment.' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: VaccinationAppointmentResponse,
+  })
   async rescheduleAppointment(
     @Body() request: RescheduleRequest,
   ): Promise<VaccinationAppointment> {
@@ -105,6 +119,7 @@ export class VaccinationController {
    * @param params Appointment id.
    */
   @Delete(':id')
+  @ApiOperation({ description: 'Cancels the vaccination appointment.' })
   async deleteAppointment(@Param() params): Promise<void> {
     const { id } = params;
 
@@ -124,6 +139,11 @@ export class VaccinationController {
    * @returns All vaccination appointments.
    */
   @Get()
+  @ApiOperation({ description: 'Get all vaccination appointments.' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: VaccinationAppointmentResponse,
+  })
   async getAllVaccinationAppointments() {
     return await this.store.getAllVaccinataionAppointments();
   }
@@ -134,6 +154,11 @@ export class VaccinationController {
    * @returns Vaccination appointment.
    */
   @Get(':id')
+  @ApiOperation({ description: 'Get vaccination appointment by id.' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: VaccinationAppointmentResponse,
+  })
   async getAllVaccinationAppointmentById(@Param() params) {
     const { id } = params;
 

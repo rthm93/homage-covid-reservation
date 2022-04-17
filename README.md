@@ -11,6 +11,7 @@ npm install
 
 3. Open the project with Visual Studio Code.
 4. Start the project by click F5 on keyboard.
+5. Navigate to `http://localhost:3000/swagger/` to read the API documentation to start using the API.
 
 ## Assumptions Made
 

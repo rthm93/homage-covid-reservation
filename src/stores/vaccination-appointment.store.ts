@@ -15,7 +15,7 @@ export class VaccinationAppointmentStore {
    */
   getVaccinationSlot(centerId: string, time: Date): Promise<VaccinationSlot> {
     return Promise.resolve({
-      slotId: 1,
+      slotId: '1',
       start: new Date(2022, 4, 16),
       end: new Date(2022, 4, 17),
       slotsAvailable: 10,
@@ -55,7 +55,7 @@ export class VaccinationAppointmentStore {
   ): Promise<VaccinationAppointment> {
     return Promise.resolve({
       slot: {
-        slotId: 1,
+        slotId: '1',
         start: new Date(2022, 4, 16),
         end: new Date(2022, 4, 17),
         slotsAvailable: 10,
@@ -79,7 +79,7 @@ export class VaccinationAppointmentStore {
    */
   createVaccinationAppointment(
     icNumber: string,
-    slotId: number,
+    slotId: string,
     fullName: string,
   ): Promise<VaccinationAppointment> {
     return Promise.resolve({
@@ -110,7 +110,7 @@ export class VaccinationAppointmentStore {
   updateVaccinationAppointment(
     appointmentId: number,
     icNumber: string,
-    slotId: number,
+    slotId: string,
     fullName: string,
   ): Promise<VaccinationAppointment> {
     return Promise.resolve({

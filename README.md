@@ -21,7 +21,7 @@
 
 | Column Name    | Data Type    | Description                                          |
 | -------------- | ------------ | ---------------------------------------------------- |
-| SlotId         | BIGINT       | ID of the slot                                       |
+| SlotId         | VARCHAR(100)       | ID of the slot                                       |
 | CenterId       | VARHCAR(100) | Unique ID of vaccination center.                     |
 | SlotsAvailable | INT          | Number of appointments available for this time slot. |
 | Start  | DATETIME     | Start time of the slot.                              |
@@ -32,6 +32,6 @@
 | Column Name   | Data Type    | Description                        |
 | ------------- | ------------ | ---------------------------------- |
 | AppointmentId | BIGINT       | ID of the vaccination reservation. |
-| SlotId        | BIGINT       | ID of the slot                     |
+| SlotId        | VARCHAR(100)       | ID of the slot                     |
 | IcNumber      | VARHCAR(100) | IC Number of applicant.            |
 | FullName      | VARHCAR(255) | Name of applicant.                 |

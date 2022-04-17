@@ -7,14 +7,14 @@ import { Injectable } from '@nestjs/common';
  */
 @Injectable()
 export class VaccinationSlotCacheService {
-  readonly BOOKINGS: { [slotId: number]: number } = {};
+  readonly BOOKINGS: { [slotId: string]: number } = {};
 
   /**
    * Add a reservation into vaccination slot.
    * @param slotId Reservation slot id.
    * @returns The current sequence.
    */
-  bookSlot(slotId: number): Promise<number> {
+  bookSlot(slotId: string): Promise<number> {
     this.BOOKINGS[slotId] = !this.BOOKINGS[slotId]
       ? 1
       : this.BOOKINGS[slotId] + 1;
@@ -26,7 +26,7 @@ export class VaccinationSlotCacheService {
    * @param slotId Reservation slot id.
    * @returns Completed promise.
    */
-  releaseSlot(slotId: number): Promise<void> {
+  releaseSlot(slotId: string): Promise<void> {
     this.BOOKINGS[slotId] =
       !this.BOOKINGS[slotId] || this.BOOKINGS[slotId] < 0
         ? 0

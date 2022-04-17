@@ -1,7 +1,7 @@
 import { VaccinationCenter } from './vaccination-center';
 
 export interface VaccinationSlot {
-  slotId: number;
+  slotId: string;
   vaccinationCenter: VaccinationCenter;
   start: Date;
   end: Date;

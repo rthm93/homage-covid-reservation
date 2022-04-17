@@ -2,6 +2,9 @@ import { Controller, Get } from '@nestjs/common';
 import { VaccinationCenter } from 'src/models/vaccination-center';
 import { VaccinationAppointmentStore } from 'src/stores/vaccination-appointment.store';
 
+/**
+ * Vaccination centers controller.
+ */
 @Controller('vaccination-centers')
 export class VaccinationCentersController {
   constructor(private store: VaccinationAppointmentStore) {}

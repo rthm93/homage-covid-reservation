@@ -9,6 +9,9 @@ import { VaccinationAppointment } from 'src/models/vaccination-appointment';
 import { VaccinationAppointmentStore } from 'src/stores/vaccination-appointment.store';
 import { VaccinationSlotCacheService } from './vaccination-slot-cache.service';
 
+/**
+ * Vaccination appointment service.
+ */
 @Injectable({
   scope: Scope.REQUEST,
 })
@@ -18,6 +21,14 @@ export class VaccinationAppointmentService {
     private store: VaccinationAppointmentStore,
   ) {}
 
+  /**
+   * Make new vaccination appointment.
+   * @param centerId Vaccination center id.
+   * @param time Time.
+   * @param icNumber IC Number.
+   * @param fullName Full name.
+   * @returns Vaccination appointment
+   */
   async makeAppointment(
     centerId: string,
     time: Date,
@@ -63,6 +74,15 @@ export class VaccinationAppointmentService {
     }
   }
 
+  /**
+   * Reschedule vaccination appointment.
+   * @param appointmentId Appointment id.
+   * @param centerId Vaccination center id.
+   * @param newTime Time.
+   * @param icNumber IC Number.
+   * @param fullName Full name.
+   * @returns Vaccination appointment
+   */
   async updateAppointment(
     appointmentId: string,
     centerId: string,
@@ -83,10 +103,12 @@ export class VaccinationAppointmentService {
       return new ErrorResult('invalid-time-slot');
     }
 
-    const sequence = await this.cache.bookSlot(slot.slotId);
+    if (slot.slotId !== existingAppointment.slot.slotId) {
+      const sequence = await this.cache.bookSlot(slot.slotId);
 
-    if (sequence > slot.slotsAvailable) {
-      return new ErrorResult('time-slot-fully-booked');
+      if (sequence > slot.slotsAvailable) {
+        return new ErrorResult('time-slot-fully-booked');
+      }
     }
 
     try {
@@ -112,6 +134,11 @@ export class VaccinationAppointmentService {
     }
   }
 
+  /**
+   * Cancel vaccination appointment.
+   * @param appointmentId Appointment id.
+   * @returns Nothing
+   */
   async cancelAppointment(appointmentId: string): Promise<Result<void>> {
     const existingAppointment =
       await this.store.getVaccinationAppointmentByAppointmentId(appointmentId);

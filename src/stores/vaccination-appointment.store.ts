@@ -133,9 +133,12 @@ export class VaccinationAppointmentStore {
     fullName: string,
   ): Promise<VaccinationAppointment> {
     const record = await this.sequelize.transaction(async (transaction) => {
-      return await this.createNewAppointment(icNumber, slotId, fullName, {
+      return await this.createNewAppointment(
+        icNumber,
+        slotId,
+        fullName,
         transaction,
-      });
+      );
     });
 
     return record;
@@ -156,14 +159,13 @@ export class VaccinationAppointmentStore {
     fullName: string,
   ): Promise<VaccinationAppointment> {
     return await this.sequelize.transaction(async (transaction) => {
-      const transactionHost = { transaction };
+      await this.deleteAppointment(appointmentId, transaction);
       const record = await this.createNewAppointment(
         icNumber,
         slotId,
         fullName,
-        transactionHost,
+        transaction,
       );
-      await this.deleteAppointment(appointmentId, transactionHost);
       return record;
     });
   }
@@ -175,7 +177,7 @@ export class VaccinationAppointmentStore {
    */
   async deleteVaccinationAppointment(appointmentId: string): Promise<void> {
     await this.sequelize.transaction(async (transaction) =>
-      this.deleteAppointment(appointmentId, { transaction }),
+      this.deleteAppointment(appointmentId, transaction),
     );
   }
 
@@ -184,17 +186,18 @@ export class VaccinationAppointmentStore {
    * @param icNumber IC Number.
    * @param slotId Vaccination slot id.
    * @param fullName Full name.
-   * @param transactionHost Transaction host.
+   * @param transaction Transaction host.
    * @returns Created Vaccination Appointment.
    */
   private async createNewAppointment(
     icNumber: string,
     slotId: string,
     fullName: string,
-    transactionHost: { transaction: Transaction },
+    transaction: Transaction,
   ): Promise<VaccinationAppointment> {
     const slot = await this.vaccinationSlots.findOne({ where: { slotId } });
     const numberOfAppointments = await this.vaccinationAppointments.count({
+      transaction,
       where: {
         slotId,
       },
@@ -207,7 +210,7 @@ export class VaccinationAppointmentStore {
     const appointmentId = this.getAppointmentId(slot.slotId);
     const appointment = await this.vaccinationAppointments.create(
       { slotid: slotId, icNumber, fullName, appointmentId },
-      transactionHost,
+      { transaction },
     );
 
     return appointment;
@@ -216,15 +219,15 @@ export class VaccinationAppointmentStore {
   /**
    * Actual logic to delete vaccination appointment.
    * @param appointmentId Existing appointment id.
-   * @param transactionHost Transaction host.
+   * @param transaction Transaction host.
    * @returns Nothing
    */
   private async deleteAppointment(
     appointmentId: string,
-    transactionHost: { transaction: Transaction },
+    transaction: Transaction,
   ): Promise<void> {
     await this.vaccinationAppointments.destroy({
-      ...transactionHost,
+      transaction,
       where: {
         appointmentId,
       },

@@ -1,6 +1,6 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Sequelize } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import {
   VaccinationAppointment,
   VaccinationAppointmentModel,
@@ -26,6 +26,7 @@ export class VaccinationAppointmentStore {
     private vaccinationSlots: typeof VaccinationSlotModel,
     @InjectModel(VaccinationAppointmentModel)
     private vaccinationAppointments: typeof VaccinationAppointmentModel,
+    private sequelize: Sequelize,
   ) {}
 
   /**
@@ -42,17 +43,28 @@ export class VaccinationAppointmentStore {
    * @param time Appointment time.
    * @returns Vaccination slot or null if no available slot.
    */
-  getVaccinationSlot(centerId: string, time: Date): Promise<VaccinationSlot> {
-    return Promise.resolve({
-      slotId: '1',
-      start: new Date(2022, 4, 16),
-      end: new Date(2022, 4, 17),
-      slotsAvailable: 10,
-      vaccinationCenter: {
-        centerId: 'BUKIT-TIMAH-CC',
-        location: 'Bukit Timah CC',
+  async getVaccinationSlot(
+    centerId: string,
+    time: Date,
+  ): Promise<VaccinationSlot> {
+    const slot = await this.vaccinationSlots.findOne({
+      include: VaccinationCenterModel,
+      where: {
+        [Op.and]: {
+          centerId: {
+            [Op.eq]: centerId,
+          },
+          start: {
+            [Op.lte]: time,
+          },
+          end: {
+            [Op.gte]: time,
+          },
+        },
       },
-    }); // TODO: connect to mysql to get slot info.
+    });
+
+    return slot;
   }
 
   /**
@@ -73,10 +85,18 @@ export class VaccinationAppointmentStore {
    * @param icNumber IC Number.
    * @returns Vaccination Appointment or null if no appointment.
    */
-  getVaccinataionAppointmentByIc(
+  async getVaccinataionAppointmentByIc(
     icNumber: string,
   ): Promise<VaccinationAppointment> {
-    return Promise.resolve(null); // TODO: connect to mysql to get appointment.
+    return await this.vaccinationAppointments.findOne({
+      include: {
+        model: VaccinationSlotModel,
+        include: [VaccinationCenterModel],
+      },
+      where: {
+        icNumber,
+      },
+    });
   }
 
   /**
@@ -84,24 +104,18 @@ export class VaccinationAppointmentStore {
    * @param appointmentId Vaccination Appointment id.
    * @returns Vaccination Appointment or null if no appointment.
    */
-  getVaccinationAppointmentByAppointmentId(
+  async getVaccinationAppointmentByAppointmentId(
     appointmentId: number,
   ): Promise<VaccinationAppointment> {
-    return Promise.resolve({
-      slot: {
-        slotId: '1',
-        start: new Date(2022, 4, 16),
-        end: new Date(2022, 4, 17),
-        slotsAvailable: 10,
-        vaccinationCenter: {
-          centerId: 'BUKIT-TIMAH-CC',
-          location: 'Bukit Timah CC',
-        },
+    return await this.vaccinationAppointments.findOne({
+      include: {
+        model: VaccinationSlotModel,
+        include: [VaccinationCenterModel],
       },
-      icNumber: '123456789',
-      fullName: 'Wong Ah Miao',
-      appointmentId: 1234525,
-    }); // TODO: connect to mysql to get appointment.
+      where: {
+        appointmentId,
+      },
+    });
   }
 
   /**
@@ -111,26 +125,29 @@ export class VaccinationAppointmentStore {
    * @param fullName Full name.
    * @returns Created Vaccination Appointment.
    */
-  createVaccinationAppointment(
+  async createVaccinationAppointment(
     icNumber: string,
     slotId: string,
     fullName: string,
   ): Promise<VaccinationAppointment> {
-    return Promise.resolve({
-      slot: {
-        slotId: slotId,
-        start: new Date(2022, 4, 16),
-        end: new Date(2022, 4, 17),
-        slotsAvailable: 10,
-        vaccinationCenter: {
-          centerId: 'BUKIT-TIMAH-CC',
-          location: 'Bukit Timah CC',
-        },
-      },
-      icNumber,
-      fullName,
-      appointmentId: 1234525,
-    }); // TODO: connect to mysql to get appointment.
+    try {
+      const record = await this.sequelize.transaction(async (t) => {
+        const transactionHost = { transaction: t };
+        const now = new Date();
+
+        const appointment = await this.vaccinationAppointments.create(
+          { firstName: 'Abraham', lastName: 'Lincoln' },
+          transactionHost,
+        );
+
+        return appointment;
+      });
+
+      return record;
+    } catch (error) {
+      console.error(error); // TODO: logging
+      return undefined;
+    }
   }
 
   /**
